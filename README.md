@@ -3,7 +3,7 @@
 Marketplace плагинов для Claude Code, покрывающих экосистему Яндекса.
 Один OAuth — все сервисы.
 
-> Статус: **0.0.1 — каркас.** Структура развёрнута, OAuth-инфраструктура работает,
+> Статус: **0.1.0 — Фаза 1 закрыта.** OAuth-инфраструктура работает,
 > сервисные плагины наполняются по фазам (см. Roadmap ниже).
 
 ## Зачем
@@ -98,11 +98,11 @@ bash ~/.claude/skills/yandex-auth/scripts/oauth-flow.sh --status
 
 ## Roadmap наполнения
 
-### Фаза 1 — критично для пилотных пользователей
-- [ ] `yandex-wordstat` — **dual-backend**: legacy OAuth (для существующих юзеров с одобренным scope) + cloud IAM (для новых, Yandex закрыл legacy onboarding).
-- [ ] `yandex-disk` — REST для файлов клиентов
-- [ ] `yandex-forms` — чтение ответов на формы
-- [ ] `yandex-calendar` — CalDAV для расписаний
+### ✅ Фаза 1 — закрыта (2026-05-05)
+- [x] `yandex-wordstat` — dual-backend (legacy + cloud IAM); `top-requests.sh` working на legacy.
+- [x] `yandex-disk` — полный REST: info, list, upload, download, publish, search.
+- [x] `yandex-forms` — probe + workaround docs (публичный API ограничен).
+- [x] `yandex-calendar` — CalDAV MVP: list-calendars + list-events.
 
 ### Фаза 2 — рабочий инструментарий
 - [ ] `yandex-mail` — IMAP/SMTP
