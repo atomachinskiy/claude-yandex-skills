@@ -1,64 +1,36 @@
 ---
 name: yandex-webmaster
 description: |
-  Управление сайтами в Вебмастере: индексация, поисковые запросы, сайтмапы, переобход, ссылки.
-  Использует общий OAuth-токен Яндекса (плагин yandex-auth). Cache-first,
-  лимит stdout 30 строк по умолчанию.
-  Triggers: yandex-webmaster, webmaster, яндекс webmaster.
+  Управление сайтами в Яндекс.Вебмастере через общий yandex-auth токен.
+  Список хостов, инфо о сайте (SQI, страницы в поиске, индексация), топ запросов.
+  Triggers: yandex webmaster, яндекс вебмастер, вебмастер, индексация, sqi,
+  поисковые запросы, страницы в поиске.
 ---
 
 # yandex-webmaster
 
-Управление сайтами в Вебмастере: индексация, поисковые запросы, сайтмапы, переобход, ссылки.
+Webmaster API v4. Управление сайтами и анализ поискового трафика.
 
 ## Конфигурация
-
-Скилл ходит за токеном в общий файл `~/.claude/secrets/yandex-app.json`, который выпускает плагин `yandex-auth`. Если токен не выпущен — скрипты выдадут ошибку с инструкцией запустить `yandex-auth/oauth-flow.sh`.
-
-Scope в OAuth-приложении: `webmaster:hostinfo,webmaster:verify`.
-
-## Принципы
-
-1. **Cache-first** — конфигурационные данные (списки, метаданные) кешируются надолго; отчёты и live-данные — короткий TTL или без кеша.
-2. **Гигиена контекста** — stdout по умолчанию ограничен 30 строками. Полные данные пишутся в файл (CSV/JSON), доступны через grep/rg.
-3. **Никаких токенов в скилле** — только общий из `yandex-auth`. Не дублируем `.env` под каждый сервис.
-4. **No destructive ops by default** — пишущие методы есть, но они должны быть явно вызваны и предупреждать пользователя.
-
-## API
-
-База: `https://api.webmaster.yandex.net/v4`
-
-Документация: см. `references/` (по мере наполнения).
-
-## Workflow
-
-> ⚠️ Скилл в стадии scaffold. Реальные команды будут добавляться по мере наполнения. Пока доступен только sanity-check токена и общий API-вызов через `scripts/common.sh` функцию `call`.
-
-### Sanity-check
-
-```bash
-bash ~/Workspaces/claude-yandex-skills/plugins/yandex-auth/skills/yandex-auth/scripts/oauth-flow.sh --status
-```
-
-Должен вернуть `✅ Token present` и `Live check: 200 OK`.
-
-### Тестовый вызов API (raw)
-
-```sh
-. scripts/common.sh
-load_config
-call GET /<endpoint>
-```
+Общий токен из `yandex-auth`. Scope: `webmaster:hostinfo`, `webmaster:verify`.
 
 ## Скрипты
 
-| Скрипт | Назначение |
-|---|---|
-| `scripts/common.sh` | Подгружает общий токен из `yandex-auth`, определяет `API_BASE`, кеш-хелперы, `call` wrapper. Сорсится из всех остальных скриптов. |
+| Скрипт | Назначение | Аргументы |
+|---|---|---|
+| `user-info.sh` | Текущий user_id (используется другими скриптами) | — |
+| `list-hosts.sh` | Все сайты пользователя | `[--json]` |
+| `host-info.sh` | Детали сайта: SQI, страницы в поиске, индексация | `<host-id> [--json]` |
+| `popular-queries.sh` | Топ поисковых запросов сайта за период | `<host-id> [--from --to] [--limit N] [--json]` |
 
-*Список наполняется по мере добавления конкретных команд.*
+## Host ID
 
-## Ссылки
+Yandex использует составной ID вида `https:dariabot.ru:443` (схема + домен + порт). Получить через `list-hosts.sh`.
 
-- yandex-auth: `../../yandex-auth/skills/yandex-auth/`
-- Marketplace: `../../../.claude-plugin/marketplace.json`
+## Workflow
+
+```bash
+bash scripts/list-hosts.sh
+bash scripts/host-info.sh "https:dariabot.ru:443"
+bash scripts/popular-queries.sh "https:dariabot.ru:443" --limit 20
+```

@@ -1,64 +1,40 @@
 ---
 name: yandex-tracker
 description: |
-  Трекер задач: задачи, очереди, комментарии, статусы, отчёты.
-  Использует общий OAuth-токен Яндекса (плагин yandex-auth). Cache-first,
-  лимит stdout 30 строк по умолчанию.
-  Triggers: yandex-tracker, tracker, яндекс tracker.
+  Яндекс.Трекер — задачи, очереди, поиск тикетов через REST API. Работает с общим
+  yandex-auth токеном плюс X-Org-Id (для Yandex 360) или X-Cloud-Org-Id (для Cloud).
+  Triggers: yandex tracker, трекер, задачи, очереди, тикеты, issues.
 ---
 
 # yandex-tracker
 
-Трекер задач: задачи, очереди, комментарии, статусы, отчёты.
+Tracker API v3. Задачи, очереди, поиск.
 
 ## Конфигурация
 
-Скилл ходит за токеном в общий файл `~/.claude/secrets/yandex-app.json`, который выпускает плагин `yandex-auth`. Если токен не выпущен — скрипты выдадут ошибку с инструкцией запустить `yandex-auth/oauth-flow.sh`.
+Помимо общего токена из `yandex-auth`, нужен **X-Org-Id**:
+- `YANDEX_TRACKER_ORG_ID=12345` (для Yandex 360 организации)
+- `YANDEX_TRACKER_CLOUD_ORG_ID=bpf...` (для Yandex Cloud организации)
 
-Scope в OAuth-приложении: `tracker:read,tracker:write`.
-
-## Принципы
-
-1. **Cache-first** — конфигурационные данные (списки, метаданные) кешируются надолго; отчёты и live-данные — короткий TTL или без кеша.
-2. **Гигиена контекста** — stdout по умолчанию ограничен 30 строками. Полные данные пишутся в файл (CSV/JSON), доступны через grep/rg.
-3. **Никаких токенов в скилле** — только общий из `yandex-auth`. Не дублируем `.env` под каждый сервис.
-4. **No destructive ops by default** — пишущие методы есть, но они должны быть явно вызваны и предупреждать пользователя.
-
-## API
-
-База: `https://api.tracker.yandex.net/v2`
-
-Документация: см. `references/` (по мере наполнения).
-
-## Workflow
-
-> ⚠️ Скилл в стадии scaffold. Реальные команды будут добавляться по мере наполнения. Пока доступен только sanity-check токена и общий API-вызов через `scripts/common.sh` функцию `call`.
-
-### Sanity-check
-
-```bash
-bash ~/Workspaces/claude-yandex-skills/plugins/yandex-auth/skills/yandex-auth/scripts/oauth-flow.sh --status
-```
-
-Должен вернуть `✅ Token present` и `Live check: 200 OK`.
-
-### Тестовый вызов API (raw)
-
-```sh
-. scripts/common.sh
-load_config
-call GET /<endpoint>
-```
+Найти org_id: https://tracker.yandex.ru/admin/orgs (правое верхнее меню профиля).
 
 ## Скрипты
 
-| Скрипт | Назначение |
-|---|---|
-| `scripts/common.sh` | Подгружает общий токен из `yandex-auth`, определяет `API_BASE`, кеш-хелперы, `call` wrapper. Сорсится из всех остальных скриптов. |
+| Скрипт | Назначение | Аргументы |
+|---|---|---|
+| `myself.sh` | Текущий пользователь Tracker | — |
+| `list-queues.sh` | Все очереди в организации | `[--json]` |
+| `list-issues.sh` | Поиск задач по запросу | `[--query "..."] [--limit N] [--json]` |
 
-*Список наполняется по мере добавления конкретных команд.*
+## Workflow
 
-## Ссылки
+```bash
+bash scripts/myself.sh                          # sanity-check
+bash scripts/list-queues.sh                     # все очереди
+bash scripts/list-issues.sh                     # мои открытые тикеты
+bash scripts/list-issues.sh --query "Queue: BK AND Status: open"
+```
 
-- yandex-auth: `../../yandex-auth/skills/yandex-auth/`
-- Marketplace: `../../../.claude-plugin/marketplace.json`
+## Tracker query syntax
+
+Полный справочник: https://yandex.ru/support/tracker/ru/user/queries.html

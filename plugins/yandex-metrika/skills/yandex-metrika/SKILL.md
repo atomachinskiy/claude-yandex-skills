@@ -1,49 +1,39 @@
 ---
 name: yandex-metrika
 description: |
-  Аналитика Яндекс.Метрики: трафик, конверсии, цели, UTM, источники, e-commerce, расходы Директа. Cache-first, 30-строчный лимит stdout.
-  Использует общий OAuth-токен Яндекса (плагин yandex-auth). Cache-first,
-  лимит stdout 30 строк по умолчанию.
-  Triggers: yandex-metrika, metrika, яндекс metrika.
+  Аналитика Яндекс.Метрики через общий yandex-auth токен.
+  Список счётчиков, инфо о счётчике, traffic-summary за период, цели и конверсии.
+  Triggers: yandex metrika, яндекс метрика, метрика, аналитика метрики, счётчик,
+  визиты, конверсии, цели, трафик.
 ---
 
 # yandex-metrika
 
-Аналитика Яндекс.Метрики: трафик, конверсии, цели, UTM, источники, e-commerce, расходы Директа. Cache-first, 30-строчный лимит stdout.
+Аналитика Яндекс.Метрики (Reporting API v1).
 
 ## Конфигурация
-
-Скилл ходит за токеном в общий файл `~/.claude/secrets/yandex-app.json`, который выпускает плагин `yandex-auth`. Если токен не выпущен — скрипты выдадут ошибку с инструкцией запустить `yandex-auth/oauth-flow.sh`.
-
-Scope в OAuth-приложении: `metrika:read,metrika:write,metrika:expenses,metrika:user_params`.
-
-## Принципы
-
-1. **Cache-first** — конфигурационные данные кешируются надолго; отчёты и live-данные — короткий TTL или без кеша.
-2. **Гигиена контекста** — stdout по умолчанию 30 строк. Полные данные пишутся в файл (CSV/JSON), доступны через grep/rg.
-3. **Никаких токенов в скилле** — только общий из `yandex-auth`.
-
-## API
-
-База: `https://api-metrika.yandex.net`
-
-## Workflow
-
-> ⚠️ Скилл в стадии scaffold. Реальные команды добавляются по мере наполнения.
-
-### Sanity-check
-
-```bash
-bash ~/Workspaces/claude-yandex-skills/plugins/yandex-auth/skills/yandex-auth/scripts/oauth-flow.sh --status
-```
+Использует общий токен из `yandex-auth`. Scope: `metrika:read`.
 
 ## Скрипты
 
-| Скрипт | Назначение |
-|---|---|
-| `scripts/common.sh` | Подгружает общий токен, определяет `API_BASE`, кеш-хелперы, `call` wrapper. |
+| Скрипт | Назначение | Аргументы |
+|---|---|---|
+| `counters.sh` | Список всех счётчиков пользователя | `[--search Q] [--json] [--full]` |
+| `counter-info.sh` | Подробная инфо о счётчике | `<id> [--json]` |
+| `traffic-summary.sh` | Трафик за период (visits/users/pageviews/bounce) | `<id> [--from --to] [--json]` |
+| `goals.sh` | Список целей счётчика | `<id> [--json]` |
 
-## Ссылки
+## Workflow
 
-- yandex-auth: `../../yandex-auth/skills/yandex-auth/`
-- Marketplace: `../../../.claude-plugin/marketplace.json`
+```bash
+bash scripts/counters.sh                          # узнать ID
+bash scripts/counter-info.sh 97431059             # детали
+bash scripts/traffic-summary.sh 97431059 \
+    --from 2026-04-01 --to 2026-04-30             # отчёт по трафику
+bash scripts/goals.sh 97431059                    # цели
+```
+
+## Особенности
+- accuracy=1 (без сэмплирования) по умолчанию.
+- Метрики: `ym:s:visits, ym:s:users, ym:s:pageviews, ym:s:bounceRate, ym:s:avgVisitDurationSeconds, ym:s:percentNewVisitors`.
+- Полный справочник метрик/dimensions: https://yandex.ru/dev/metrika/doc/api2/api_v1/intro.html

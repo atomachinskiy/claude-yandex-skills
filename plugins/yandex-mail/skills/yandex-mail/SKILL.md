@@ -1,64 +1,35 @@
 ---
 name: yandex-mail
 description: |
-  Почта Яндекс 360: чтение, отправка, поиск через IMAP/SMTP с OAuth-токеном.
-  Использует общий OAuth-токен Яндекса (плагин yandex-auth). Cache-first,
-  лимит stdout 30 строк по умолчанию.
-  Triggers: yandex-mail, mail, яндекс mail.
+  Яндекс.Почта через IMAP с XOAUTH2 (общий yandex-auth токен вместо пароля).
+  Список папок, счётчик INBOX, поиск писем.
+  Triggers: yandex mail, яндекс почта, почта, imap, inbox, входящие.
 ---
 
 # yandex-mail
 
-Почта Яндекс 360: чтение, отправка, поиск через IMAP/SMTP с OAuth-токеном.
+IMAP/SMTP клиент через XOAUTH2. Использует общий токен из `yandex-auth` как Bearer вместо пароля.
 
-## Конфигурация
+## Активация
 
-Скилл ходит за токеном в общий файл `~/.claude/secrets/yandex-app.json`, который выпускает плагин `yandex-auth`. Если токен не выпущен — скрипты выдадут ошибку с инструкцией запустить `yandex-auth/oauth-flow.sh`.
+⚠️ **Требует двух предварительных шагов:**
 
-Scope в OAuth-приложении: `mail:imap_full,mail:smtp`.
+1. **Scope `mail:imap_full`** должен быть включён в OAuth-app «Я-Клауд-Клиентс». Если нет — добавить в кабинете oauth.yandex.ru, перевыпустить токен через `yandex-auth/oauth-flow.sh`.
+2. **IMAP-доступ должен быть разрешён** в настройках Яндекс.Почты:
+   https://mail.yandex.ru/?uid=...#setup/client → «С сервера imap.yandex.ru по протоколу IMAP» → включить.
 
-## Принципы
-
-1. **Cache-first** — конфигурационные данные (списки, метаданные) кешируются надолго; отчёты и live-данные — короткий TTL или без кеша.
-2. **Гигиена контекста** — stdout по умолчанию ограничен 30 строками. Полные данные пишутся в файл (CSV/JSON), доступны через grep/rg.
-3. **Никаких токенов в скилле** — только общий из `yandex-auth`. Не дублируем `.env` под каждый сервис.
-4. **No destructive ops by default** — пишущие методы есть, но они должны быть явно вызваны и предупреждать пользователя.
-
-## API
-
-База: `imap.yandex.ru,smtp.yandex.ru`
-
-Документация: см. `references/` (по мере наполнения).
-
-## Workflow
-
-> ⚠️ Скилл в стадии scaffold. Реальные команды будут добавляться по мере наполнения. Пока доступен только sanity-check токена и общий API-вызов через `scripts/common.sh` функцию `call`.
-
-### Sanity-check
-
-```bash
-bash ~/Workspaces/claude-yandex-skills/plugins/yandex-auth/skills/yandex-auth/scripts/oauth-flow.sh --status
-```
-
-Должен вернуть `✅ Token present` и `Live check: 200 OK`.
-
-### Тестовый вызов API (raw)
-
-```sh
-. scripts/common.sh
-load_config
-call GET /<endpoint>
-```
+Пока эти два шага не сделаны — скрипты возвращают `[UNAVAILABLE] AUTHENTICATE internal server error`.
 
 ## Скрипты
 
 | Скрипт | Назначение |
 |---|---|
-| `scripts/common.sh` | Подгружает общий токен из `yandex-auth`, определяет `API_BASE`, кеш-хелперы, `call` wrapper. Сорсится из всех остальных скриптов. |
+| `list-folders.sh` | Все IMAP-папки в почтовом ящике |
+| `inbox-count.sh` | Количество писем в INBOX (всего + непрочитанные) |
 
-*Список наполняется по мере добавления конкретных команд.*
+## Технические заметки
 
-## Ссылки
-
-- yandex-auth: `../../yandex-auth/skills/yandex-auth/`
-- Marketplace: `../../../.claude-plugin/marketplace.json`
+- Сервер: `imap.yandex.ru:993` (TLS)
+- Auth: SASL XOAUTH2 (`user=<email>\x01auth=Bearer <token>\x01\x01` → base64)
+- Реализация — Python 3 stdlib (imaplib, base64), без внешних зависимостей
+- Email-форма: автоматически добавляется `@yandex.ru` если в логине нет `@`

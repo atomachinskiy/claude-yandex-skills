@@ -77,3 +77,32 @@ call() {
         "$@" \
         "$API_BASE$_path"
 }
+
+# tracker_call <method> <path> [body]
+# Adds X-Cloud-Org-Id or X-Org-Id from .env. One of YANDEX_TRACKER_ORG_ID or
+# YANDEX_TRACKER_CLOUD_ORG_ID must be set.
+tracker_call() {
+    _method="$1"; _path="$2"; _body="${3:-}"
+    if [ -n "$YANDEX_TRACKER_CLOUD_ORG_ID" ]; then
+        _hdr="X-Cloud-Org-Id: $YANDEX_TRACKER_CLOUD_ORG_ID"
+    elif [ -n "$YANDEX_TRACKER_ORG_ID" ]; then
+        _hdr="X-Org-Id: $YANDEX_TRACKER_ORG_ID"
+    else
+        echo "ERROR: set YANDEX_TRACKER_ORG_ID or YANDEX_TRACKER_CLOUD_ORG_ID in config/.env" >&2
+        echo "Tracker requires organization context. Find your org_id at https://tracker.yandex.ru/admin/orgs" >&2
+        exit 1
+    fi
+    if [ -n "$_body" ]; then
+        curl -s --max-time 30 -X "$_method" \
+            -H "Authorization: OAuth $YANDEX_ACCESS_TOKEN" \
+            -H "$_hdr" \
+            -H "Content-Type: application/json" \
+            -d "$_body" \
+            "$API_BASE$_path"
+    else
+        curl -s --max-time 30 -X "$_method" \
+            -H "Authorization: OAuth $YANDEX_ACCESS_TOKEN" \
+            -H "$_hdr" \
+            "$API_BASE$_path"
+    fi
+}
