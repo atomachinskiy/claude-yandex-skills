@@ -77,3 +77,26 @@ call() {
         "$@" \
         "$API_BASE$_path"
 }
+
+# parse_simple_flags — recognises --json and --full and a single positional arg
+parse_simple_flags() {
+    _pf_full=0
+    _pf_json=0
+    _pf_limit=""
+    _pf_pos=""
+    _next=""
+    for _arg in "$@"; do
+        case "$_next" in
+            --limit) _pf_limit="$_arg"; _next="" ; continue ;;
+        esac
+        case "$_arg" in
+            --json) _pf_json=1 ;;
+            --full) _pf_full=1 ;;
+            --limit) _next=--limit ;;
+            *) _pf_pos="$_pf_pos $_arg" ;;
+        esac
+    done
+    _pf_pos=$(echo "$_pf_pos" | sed 's/^ //')
+    printf 'OUTPUT_FULL=%d; OUTPUT_JSON=%d; LIMIT="%s"; POSITIONAL_ARGS="%s"' \
+        "$_pf_full" "$_pf_json" "$_pf_limit" "$_pf_pos"
+}

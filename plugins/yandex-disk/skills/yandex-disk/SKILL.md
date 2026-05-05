@@ -32,31 +32,42 @@ Scope в OAuth-приложении: `cloud_api:disk.read,cloud_api:disk.write,c
 
 ## Workflow
 
-> ⚠️ Скилл в стадии scaffold. Реальные команды будут добавляться по мере наполнения. Пока доступен только sanity-check токена и общий API-вызов через `scripts/common.sh` функцию `call`.
-
 ### Sanity-check
 
 ```bash
-bash ~/Workspaces/claude-yandex-skills/plugins/yandex-auth/skills/yandex-auth/scripts/oauth-flow.sh --status
+bash scripts/info.sh
 ```
 
-Должен вернуть `✅ Token present` и `Live check: 200 OK`.
+Должен вывести аккаунт, total/used/trash в GB.
 
-### Тестовый вызов API (raw)
+### Типичный сценарий
 
-```sh
-. scripts/common.sh
-load_config
-call GET /<endpoint>
+```bash
+bash scripts/list.sh /Загрузки                # посмотреть что в папке
+bash scripts/upload.sh ./report.pdf /Отчёты/  # положить файл
+bash scripts/download.sh /Отчёты/report.pdf   # скачать
+bash scripts/publish.sh /Отчёты/report.pdf    # публичная ссылка
+bash scripts/search.sh "договор"               # найти по имени
 ```
 
 ## Скрипты
 
-| Скрипт | Назначение |
-|---|---|
-| `scripts/common.sh` | Подгружает общий токен из `yandex-auth`, определяет `API_BASE`, кеш-хелперы, `call` wrapper. Сорсится из всех остальных скриптов. |
+| Скрипт | Назначение | Аргументы |
+|---|---|---|
+| `info.sh` | Account info, использование диска | `[--json]` |
+| `list.sh` | Содержимое папки (имя, размер, дата) | `[PATH] [--limit N] [--json] [--full]` |
+| `upload.sh` | Загрузить локальный файл на Диск | `<local> <remote> [--overwrite]` |
+| `download.sh` | Скачать файл с Диска | `<remote> [local]` |
+| `publish.sh` | Опубликовать → получить публичную ссылку | `<remote>` |
+| `search.sh` | Поиск по имени файла | `<query> [N]` |
+| `common.sh` | Shared: load_token, call, cache, limit_output | — |
 
-*Список наполняется по мере добавления конкретных команд.*
+## Особенности
+
+- **Пути**: `disk:/foo` или `/foo` — оба работают, скрипты сами нормализуют. Кириллица URL-кодируется автоматически.
+- **Rate limit**: read ≈ 40 req/sec, write ≈ 10 req/sec. Для batch-операций добавь `sleep 0.1` между вызовами.
+- **Trash**: при удалении файлы попадают в корзину. REST для Trash есть, но не реализован тут.
+- **WebDAV**: альтернативный путь — `https://webdav.yandex.ru` с Basic-auth. Не реализован (REST покрывает 95% задач).
 
 ## Ссылки
 
