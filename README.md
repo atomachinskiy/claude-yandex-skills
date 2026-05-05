@@ -3,7 +3,7 @@
 Marketplace плагинов для Claude Code, покрывающих экосистему Яндекса.
 Один OAuth — все сервисы.
 
-> Статус: **0.1.0 — Фаза 1 закрыта.** OAuth-инфраструктура работает,
+> Статус: **0.2.0 — все 15 плагинов закрыты.** OAuth-инфраструктура работает,
 > сервисные плагины наполняются по фазам (см. Roadmap ниже).
 
 ## Зачем
@@ -81,20 +81,20 @@ bash ~/.claude/skills/yandex-auth/scripts/oauth-flow.sh --status
 | Плагин | Сервис | Статус |
 |---|---|---|
 | `yandex-auth` | Единая точка авторизации | ✅ работает |
-| `yandex-metrika` | Аналитика (трафик, конверсии, UTM) | 🟡 scaffold |
-| `yandex-webmaster` | Управление сайтами в поиске | 🟡 scaffold |
+| `yandex-metrika` | Аналитика (трафик, конверсии, UTM, цели) | 🟢 working |
+| `yandex-webmaster` | Управление сайтами в поиске (SQI, queries, hosts) | 🟢 working |
 | `yandex-wordstat` | Поисковый спрос (dual-backend: legacy + cloud) | 🟢 working (legacy) |
-| `yandex-direct` | Контекстная реклама | 🟡 scaffold |
-| `yandex-audience` | Сегменты аудиторий | 🟡 scaffold |
+| `yandex-direct` | Контекстная реклама | ⚠️ probe (нужно отд. OAuth-app) |
+| `yandex-audience` | Сегменты аудиторий | ⚠️ probe (нужен scope audience:use) |
 | `yandex-forms` | Конструктор форм | 🔴 limited (no public API) |
 | `yandex-calendar` | Календарь (CalDAV) | 🟢 MVP working |
-| `yandex-mail` | Почта 360 (IMAP/SMTP) | 🟡 scaffold |
+| `yandex-mail` | Почта 360 (IMAP/SMTP) | 🟡 IMAP XOAUTH2 (нужно включить IMAP в ящике) |
 | `yandex-disk` | Облако (REST + WebDAV) | 🟢 working |
-| `yandex-telemost` | Видеовстречи | 🟡 scaffold |
-| `yandex-tracker` | Трекер задач | 🟡 scaffold |
-| `yandex-bot-platform` | Диалоги Алисы / навыки | 🟡 scaffold |
-| `yandex-360-admin` | Админ-API организации | 🟡 scaffold |
-| `yandex-messenger` | Мессенджер (бот-API) | 🟡 scaffold |
+| `yandex-telemost` | Видеовстречи | ⚠️ probe (нужен Yandex 360 для бизнеса) |
+| `yandex-tracker` | Трекер задач | 🟡 готово (нужен X-Org-Id в .env) |
+| `yandex-bot-platform` | Диалоги Алисы / навыки | ⚠️ probe (нужен скилл в Dialogs Console) |
+| `yandex-360-admin` | Админ-API организации | ⚠️ probe (нужен scope directory:read + org_id) |
+| `yandex-messenger` | Мессенджер (бот-API) | ⚠️ probe (нужен отдельный bot-токен) |
 
 ## Roadmap наполнения
 
@@ -104,17 +104,21 @@ bash ~/.claude/skills/yandex-auth/scripts/oauth-flow.sh --status
 - [x] `yandex-forms` — probe + workaround docs (публичный API ограничен).
 - [x] `yandex-calendar` — CalDAV MVP: list-calendars + list-events.
 
-### Фаза 2 — рабочий инструментарий
-- [ ] `yandex-mail` — IMAP/SMTP
-- [ ] `yandex-tracker` — задачи и очереди
-- [ ] `yandex-direct` — рекламный кабинет (полный цикл)
+### ✅ Фаза 2 — закрыта (2026-05-05)
+- [x] `yandex-metrika` — counters, counter-info, traffic-summary, goals (live).
+- [x] `yandex-webmaster` — list-hosts, host-info, popular-queries (live).
+- [x] `yandex-tracker` — myself, list-queues, list-issues (нужен X-Org-Id).
+- [x] `yandex-mail` — IMAP XOAUTH2: list-folders, inbox-count (нужно включить IMAP в Я.Почте).
+- [x] `yandex-direct`, `yandex-audience`, `yandex-telemost`, `yandex-360-admin`,
+      `yandex-bot-platform`, `yandex-messenger` — probe-скрипт + activation-инструкции
+      (каждый требует отдельной заявки / scope / setup).
 
-### Фаза 3 — миграция существующего
-- [ ] `yandex-metrika` — переписать существующий локальный скилл на общую инфру
+## Дальше
 
-### Фаза 4 — по запросу
-- [ ] `yandex-360-admin`, `yandex-messenger`, `yandex-bot-platform`,
-      `yandex-telemost`, `yandex-audience`, `yandex-webmaster`
+Все 15 плагинов закрыты структурно. Будущие апдейты по ситуации:
+- Полная реализация direct/audience/etc. — когда соответствующие сервисы будут активированы у пользователя.
+- Расширение существующих скиллов (e.g. metrika , ).
+- Возможный публичный релиз репо (сейчас приватный).
 
 ## Структура
 
