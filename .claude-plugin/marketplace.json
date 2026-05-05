@@ -1,0 +1,99 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-yandex-skills",
+  "version": "0.0.1",
+  "description": "Скиллы для работы с экосистемой Яндекса через единый OAuth (приложение Я-Клауд-Клиентс): Метрика, Вебмастер, Wordstat, Директ, Аудитории, Формы, Календарь, Почта, Диск, Телемост, Трекер, Боты, 360 Admin, Мессенджер.",
+  "owner": { "name": "Andrey Tomachinskiy", "url": "https://github.com/atomachinskiy" },
+  "plugins": [
+    {
+      "name": "yandex-auth",
+      "description": "Unified OAuth flow for all Yandex APIs (single token covering all scopes the user enabled in their Yandex OAuth app)",
+      "source": "./plugins/yandex-auth",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-metrika",
+      "description": "Web/app analytics: traffic, conversions, UTM, SE breakdown, goals, funnels.",
+      "source": "./plugins/yandex-metrika",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-webmaster",
+      "description": "Site management: indexing, queries, sitemaps, recrawl, links, feeds.",
+      "source": "./plugins/yandex-webmaster",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-wordstat",
+      "description": "Search demand and keyword research (NB: scope requires manual approval from Yandex).",
+      "source": "./plugins/yandex-wordstat",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-direct",
+      "description": "Ads: campaigns, groups, keywords, reports, ORD documents.",
+      "source": "./plugins/yandex-direct",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-audience",
+      "description": "Audience segments for VK Ads / Direct retargeting.",
+      "source": "./plugins/yandex-audience",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-forms",
+      "description": "Forms constructor: create, list responses.",
+      "source": "./plugins/yandex-forms",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-calendar",
+      "description": "CalDAV calendar: events, schedule, reminders.",
+      "source": "./plugins/yandex-calendar",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-mail",
+      "description": "IMAP/SMTP mail (Yandex 360).",
+      "source": "./plugins/yandex-mail",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-disk",
+      "description": "Files via REST API (and WebDAV fallback).",
+      "source": "./plugins/yandex-disk",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-telemost",
+      "description": "Video meetings: schedule, list, join links.",
+      "source": "./plugins/yandex-telemost",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-tracker",
+      "description": "Project tracker: issues, queues, comments.",
+      "source": "./plugins/yandex-tracker",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-bot-platform",
+      "description": "Yandex Dialogs / bot-platform skills.",
+      "source": "./plugins/yandex-bot-platform",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-360-admin",
+      "description": "Yandex 360 organisation admin: users, domains, audit.",
+      "source": "./plugins/yandex-360-admin",
+      "category": "productivity"
+    },
+    {
+      "name": "yandex-messenger",
+      "description": "Yandex Messenger API.",
+      "source": "./plugins/yandex-messenger",
+      "category": "productivity"
+    }
+  ]
+}

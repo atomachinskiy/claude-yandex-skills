@@ -1,0 +1,6 @@
+{
+  "name": "yandex-mail",
+  "version": "0.0.1",
+  "description": "Почта Яндекс 360: чтение, отправка, поиск через IMAP/SMTP с OAuth-токеном.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

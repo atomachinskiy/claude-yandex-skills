@@ -1,0 +1,6 @@
+{
+  "name": "yandex-wordstat",
+  "version": "0.0.1",
+  "description": "Анализ поискового спроса (Wordstat). ⚠️ Доступ к scope требует ручной заявки в поддержку Яндекса.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

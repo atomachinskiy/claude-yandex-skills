@@ -1,0 +1,6 @@
+{
+  "name": "yandex-bot-platform",
+  "version": "0.0.1",
+  "description": "Ботоплатформа Яндекс.Диалогов: навыки Алисы, голосовые скиллы, аналитика.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

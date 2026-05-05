@@ -1,0 +1,6 @@
+{
+  "name": "yandex-webmaster",
+  "version": "0.0.1",
+  "description": "Управление сайтами в Вебмастере: индексация, поисковые запросы, сайтмапы, переобход, ссылки.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

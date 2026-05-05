@@ -1,0 +1,6 @@
+{
+  "name": "yandex-tracker",
+  "version": "0.0.1",
+  "description": "Трекер задач: задачи, очереди, комментарии, статусы, отчёты.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

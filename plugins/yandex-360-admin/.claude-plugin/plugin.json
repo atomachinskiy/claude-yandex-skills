@@ -1,0 +1,6 @@
+{
+  "name": "yandex-360-admin",
+  "version": "0.0.1",
+  "description": "Админ-API Яндекс 360: пользователи, домены, аудит, настройки организации.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

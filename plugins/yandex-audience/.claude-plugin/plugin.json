@@ -1,0 +1,6 @@
+{
+  "name": "yandex-audience",
+  "version": "0.0.1",
+  "description": "Аудитории Яндекса: создание сегментов, lookalike, использование в Директе и VK Ads.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

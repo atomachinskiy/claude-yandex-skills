@@ -1,0 +1,6 @@
+{
+  "name": "yandex-disk",
+  "version": "0.0.1",
+  "description": "Облако Яндекс.Диск через REST API: файлы, папки, публикация ссылок. Также fallback на WebDAV.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "yandex-forms",
+  "version": "0.0.1",
+  "description": "Конструктор форм: создание форм, чтение ответов, экспорт результатов.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "yandex-telemost",
+  "version": "0.0.1",
+  "description": "Видеовстречи Яндекс.Телемост: создание встреч, расписание, ссылки.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

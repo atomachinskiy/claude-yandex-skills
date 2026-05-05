@@ -1,0 +1,6 @@
+{
+  "name": "yandex-direct",
+  "version": "0.0.1",
+  "description": "Контекстная реклама Яндекс.Директ: кампании, объявления, отчёты, ставки, ОРД-документы.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

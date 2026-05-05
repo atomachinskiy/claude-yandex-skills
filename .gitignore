@@ -1,0 +1,4 @@
+**/cache/*
+!**/cache/.gitkeep
+**/config/.env
+.DS_Store

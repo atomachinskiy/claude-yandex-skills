@@ -1,0 +1,6 @@
+{
+  "name": "yandex-messenger",
+  "version": "0.0.1",
+  "description": "Яндекс.Мессенджер: чаты, сообщения, поиск (бот-API).",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

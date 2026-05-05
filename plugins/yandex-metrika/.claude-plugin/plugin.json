@@ -1,0 +1,6 @@
+{
+  "name": "yandex-metrika",
+  "version": "0.0.1",
+  "description": "Аналитика Яндекс.Метрики: трафик, конверсии, цели, UTM, источники, e-commerce, расходы Директа. Cache-first, 30-строчный лимит stdout.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "yandex-calendar",
+  "version": "0.0.1",
+  "description": "Календарь Яндекс 360 через CalDAV: события, расписание, напоминания.",
+  "author": { "name": "Andrey Tomachinskiy" }
+}

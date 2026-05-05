@@ -1,0 +1,6 @@
+{
+  "name": "yandex-auth",
+  "version": "0.0.1",
+  "description": "Unified OAuth flow for all Yandex APIs (single token covering all scopes the user enabled in their Yandex OAuth app)",
+  "author": { "name": "Andrey Tomachinskiy" }
+}
