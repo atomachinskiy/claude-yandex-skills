@@ -1,64 +1,40 @@
 ---
 name: yandex-forms
 description: |
-  Конструктор форм: создание форм, чтение ответов, экспорт результатов.
-  Использует общий OAuth-токен Яндекса (плагин yandex-auth). Cache-first,
-  лимит stdout 30 строк по умолчанию.
-  Triggers: yandex-forms, forms, яндекс forms.
+  Конструктор форм Яндекса. ⚠️ Публичный REST API ограничен / отсутствует.
+  Скилл работает в режиме probe + workaround-инструкции. Для production —
+  использовать webhook или интеграцию формы с Tracker / Sheets.
+  Triggers: yandex forms, яндекс формы, конструктор форм, опросы.
 ---
 
 # yandex-forms
 
-Конструктор форм: создание форм, чтение ответов, экспорт результатов.
+⚠️ **Публичного REST API у Яндекс Форм нет** (на 2026). Это известное ограничение —
+у конкурентов (Google Forms, Typeform) API есть, у Яндекса — пока нет.
 
-## Конфигурация
+## Что доступно
 
-Скилл ходит за токеном в общий файл `~/.claude/secrets/yandex-app.json`, который выпускает плагин `yandex-auth`. Если токен не выпущен — скрипты выдадут ошибку с инструкцией запустить `yandex-auth/oauth-flow.sh`.
+- `scripts/list-surveys.sh` — пробинг известных endpoint'ов (`forms.yandex.ru/api/v1/`,
+  `forms.yandex.ru/api/v2/`). Возвращает HTTP-коды и подсказки по обходу.
 
-Scope в OAuth-приложении: `forms:read,forms:write`.
+## Workaround'ы
 
-## Принципы
+1. **Webhook в форме**: в редакторе формы → настройки → «Уведомления» → добавить URL.
+   Каждый ответ POST'ится на твой сервер (n8n / Cloudflare Worker / собственный).
+2. **Интеграция с Yandex Tracker**: создавать тикет на каждый ответ (если у тебя есть Tracker).
+3. **Экспорт в Яндекс.Таблицу**: в форме → «Связать с таблицей» → ответы автоматически
+   ложатся в Sheet → читать через `yandex-disk` или `yandex-calendar` (Sheets in Disk).
+4. **Yandex 360 admin API** (`api360.yandex.net`) — если у тебя 360 для бизнеса,
+   возможно там есть формы. Проверь scope в OAuth.
 
-1. **Cache-first** — конфигурационные данные (списки, метаданные) кешируются надолго; отчёты и live-данные — короткий TTL или без кеша.
-2. **Гигиена контекста** — stdout по умолчанию ограничен 30 строками. Полные данные пишутся в файл (CSV/JSON), доступны через grep/rg.
-3. **Никаких токенов в скилле** — только общий из `yandex-auth`. Не дублируем `.env` под каждый сервис.
-4. **No destructive ops by default** — пишущие методы есть, но они должны быть явно вызваны и предупреждать пользователя.
+## Когда добавим реальные команды
 
-## API
+Если Яндекс выкатит публичный API (планы есть, см. https://yandex.ru/dev/forms/),
+обновим скилл — добавим `responses.sh`, `export-csv.sh`, `create-survey.sh`.
 
-База: `https://forms.yandex.ru/api/v1`
+## Структура папки
 
-Документация: см. `references/` (по мере наполнения).
-
-## Workflow
-
-> ⚠️ Скилл в стадии scaffold. Реальные команды будут добавляться по мере наполнения. Пока доступен только sanity-check токена и общий API-вызов через `scripts/common.sh` функцию `call`.
-
-### Sanity-check
-
-```bash
-bash ~/Workspaces/claude-yandex-skills/plugins/yandex-auth/skills/yandex-auth/scripts/oauth-flow.sh --status
-```
-
-Должен вернуть `✅ Token present` и `Live check: 200 OK`.
-
-### Тестовый вызов API (raw)
-
-```sh
-. scripts/common.sh
-load_config
-call GET /<endpoint>
-```
-
-## Скрипты
-
-| Скрипт | Назначение |
+| Файл | Назначение |
 |---|---|
-| `scripts/common.sh` | Подгружает общий токен из `yandex-auth`, определяет `API_BASE`, кеш-хелперы, `call` wrapper. Сорсится из всех остальных скриптов. |
-
-*Список наполняется по мере добавления конкретных команд.*
-
-## Ссылки
-
-- yandex-auth: `../../yandex-auth/skills/yandex-auth/`
-- Marketplace: `../../../.claude-plugin/marketplace.json`
+| `scripts/list-surveys.sh` | Probe endpoints, report status |
+| `scripts/common.sh` | Shared helpers (от templates) |

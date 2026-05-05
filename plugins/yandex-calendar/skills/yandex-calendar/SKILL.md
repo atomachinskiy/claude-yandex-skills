@@ -1,64 +1,57 @@
 ---
 name: yandex-calendar
 description: |
-  Календарь Яндекс 360 через CalDAV: события, расписание, напоминания.
-  Использует общий OAuth-токен Яндекса (плагин yandex-auth). Cache-first,
-  лимит stdout 30 строк по умолчанию.
-  Triggers: yandex-calendar, calendar, яндекс calendar.
+  Работа с Яндекс.Календарём через CalDAV. Список календарей, события за
+  период, поиск встреч. Auth через login + общий yandex-auth токен (как Basic).
+  Triggers: yandex calendar, яндекс календарь, caldav, события, встречи,
+  расписание, календарь.
 ---
 
 # yandex-calendar
 
-Календарь Яндекс 360 через CalDAV: события, расписание, напоминания.
+CalDAV-клиент к Яндекс.Календарю через `https://caldav.yandex.ru`.
 
-## Конфигурация
+## Auth
 
-Скилл ходит за токеном в общий файл `~/.claude/secrets/yandex-app.json`, который выпускает плагин `yandex-auth`. Если токен не выпущен — скрипты выдадут ошибку с инструкцией запустить `yandex-auth/oauth-flow.sh`.
+Yandex CalDAV принимает **HTTP Basic** с парой `<login>:<oauth-token>` (вместо пароля используется OAuth-токен из `yandex-auth`). Логин в адресе principal должен быть в email-форме (`a.tomachinsky@yandex.ru`).
 
-Scope в OAuth-приложении: `calendar:caldav`.
-
-## Принципы
-
-1. **Cache-first** — конфигурационные данные (списки, метаданные) кешируются надолго; отчёты и live-данные — короткий TTL или без кеша.
-2. **Гигиена контекста** — stdout по умолчанию ограничен 30 строками. Полные данные пишутся в файл (CSV/JSON), доступны через grep/rg.
-3. **Никаких токенов в скилле** — только общий из `yandex-auth`. Не дублируем `.env` под каждый сервис.
-4. **No destructive ops by default** — пишущие методы есть, но они должны быть явно вызваны и предупреждать пользователя.
-
-## API
-
-База: `https://caldav.yandex.ru`
-
-Документация: см. `references/` (по мере наполнения).
+Скилл достаёт login и токен автоматически из `~/.claude/secrets/yandex-app.json` через `yandex-auth/common.sh`.
 
 ## Workflow
-
-> ⚠️ Скилл в стадии scaffold. Реальные команды будут добавляться по мере наполнения. Пока доступен только sanity-check токена и общий API-вызов через `scripts/common.sh` функцию `call`.
 
 ### Sanity-check
 
 ```bash
-bash ~/Workspaces/claude-yandex-skills/plugins/yandex-auth/skills/yandex-auth/scripts/oauth-flow.sh --status
+bash scripts/list-calendars.sh
 ```
 
-Должен вернуть `✅ Token present` и `Live check: 200 OK`.
+Должен вывести список календарей с их CalDAV-путями (`/calendars/<email>/events-XXXXXX/`).
 
-### Тестовый вызов API (raw)
+### События за период
 
-```sh
-. scripts/common.sh
-load_config
-call GET /<endpoint>
+```bash
+bash scripts/list-events.sh "/calendars/<email>/events-853016/" --from 2026-05-01 --to 2026-05-31
 ```
+
+По умолчанию: сегодня → сегодня + 30 дней.
 
 ## Скрипты
 
-| Скрипт | Назначение |
-|---|---|
-| `scripts/common.sh` | Подгружает общий токен из `yandex-auth`, определяет `API_BASE`, кеш-хелперы, `call` wrapper. Сорсится из всех остальных скриптов. |
+| Скрипт | Назначение | Аргументы |
+|---|---|---|
+| `list-calendars.sh` | Все календари юзера | — |
+| `list-events.sh` | События в диапазоне дат | `<calendar-path> [--from YYYY-MM-DD] [--to YYYY-MM-DD]` |
+| `common.sh` | CalDAV helpers (PROPFIND, REPORT, Basic auth) | — |
 
-*Список наполняется по мере добавления конкретных команд.*
+## Что НЕ покрыто (потенциально для следующих версий)
 
-## Ссылки
+- Создание / редактирование событий (`PUT` ICS файла)
+- Подписки на чужие календари
+- Полная поддержка повторяющихся событий (RRULE сейчас не разворачивается — показываем только базовое)
+- Todos (`/calendars/.../todos-XXXX/`) — структура та же что у events, скрипт работает, но формат VTODO не парсится отдельно
 
-- yandex-auth: `../../yandex-auth/skills/yandex-auth/`
-- Marketplace: `../../../.claude-plugin/marketplace.json`
+## Технические заметки
+
+- CalDAV — это XML over HTTP с методами `PROPFIND` (read tree) и `REPORT` (queries). Не путать с обычным REST.
+- iCalendar (`.ics`) — формат содержимого событий. Парсится regex'ами в `list-events.sh` (упрощённо, для production-quality нужен полноценный парсер).
+- Time-range запрос требует UTC-формат `YYYYMMDDThhmmssZ`. Скрипт сам конвертирует из `YYYY-MM-DD`.

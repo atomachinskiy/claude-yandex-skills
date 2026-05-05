@@ -83,13 +83,13 @@ bash ~/.claude/skills/yandex-auth/scripts/oauth-flow.sh --status
 | `yandex-auth` | Единая точка авторизации | ✅ работает |
 | `yandex-metrika` | Аналитика (трафик, конверсии, UTM) | 🟡 scaffold |
 | `yandex-webmaster` | Управление сайтами в поиске | 🟡 scaffold |
-| `yandex-wordstat` | Поисковый спрос (с dual-backend для Cloud) | 🟡 scaffold |
+| `yandex-wordstat` | Поисковый спрос (dual-backend: legacy + cloud) | 🟢 working (legacy) |
 | `yandex-direct` | Контекстная реклама | 🟡 scaffold |
 | `yandex-audience` | Сегменты аудиторий | 🟡 scaffold |
-| `yandex-forms` | Конструктор форм | 🟡 scaffold |
-| `yandex-calendar` | Календарь (CalDAV) | 🟡 scaffold |
+| `yandex-forms` | Конструктор форм | 🔴 limited (no public API) |
+| `yandex-calendar` | Календарь (CalDAV) | 🟢 MVP working |
 | `yandex-mail` | Почта 360 (IMAP/SMTP) | 🟡 scaffold |
-| `yandex-disk` | Облако (REST + WebDAV) | 🟡 scaffold |
+| `yandex-disk` | Облако (REST + WebDAV) | 🟢 working |
 | `yandex-telemost` | Видеовстречи | 🟡 scaffold |
 | `yandex-tracker` | Трекер задач | 🟡 scaffold |
 | `yandex-bot-platform` | Диалоги Алисы / навыки | 🟡 scaffold |
