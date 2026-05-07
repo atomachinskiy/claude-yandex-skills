@@ -53,7 +53,40 @@ Marketplace плагинов для Claude Code, покрывающих экос
 
 ## Установка
 
-### Marketplace
+📖 **Полная пошаговая инструкция для AI-ассистента — [docs/INSTALL.md](docs/INSTALL.md).**
+Эта инструкция оптимизирована под установку через Claude Code: AI делает всё сам через `git clone`, пользователю нужно только нажать «Разрешить» в браузере и вставить URL обратно. Без `/plugin` slash-команд, без Git Bash на Windows.
+
+### Быстрый старт (вручную)
+
+```bash
+git clone --depth 1 https://github.com/atomachinskiy/claude-yandex-skills.git ~/.claude/yandex-skills-local
+```
+
+**OAuth (один токен на все сервисы):**
+
+macOS / Linux:
+```bash
+bash ~/.claude/yandex-skills-local/plugins/yandex-auth/skills/yandex-auth/scripts/oauth-flow.sh
+```
+
+Windows (PowerShell):
+```powershell
+powershell -ExecutionPolicy Bypass -File "$HOME\.claude\yandex-skills-local\plugins\yandex-auth\skills\yandex-auth\scripts\oauth-flow.ps1"
+```
+
+Откроется браузер с authorize-страницей Яндекса. После «Разрешить» —
+скрипт ловит токен из URL, валидирует через `login.yandex.ru/info`,
+кладёт в `~/.claude/secrets/yandex-app.json`. Один раз — и работает всё.
+
+Проверка токена:
+```bash
+# macOS/Linux
+bash ~/.claude/yandex-skills-local/plugins/yandex-auth/skills/yandex-auth/scripts/oauth-flow.sh --status
+# Windows
+powershell -ExecutionPolicy Bypass -File "$HOME\.claude\yandex-skills-local\plugins\yandex-auth\skills\yandex-auth\scripts\oauth-flow.ps1" -Status
+```
+
+### Альтернатива — Marketplace (требует ручного ввода slash-команд в Claude Code)
 
 ```
 /plugin marketplace add atomachinskiy/claude-yandex-skills
@@ -61,20 +94,7 @@ Marketplace плагинов для Claude Code, покрывающих экос
 /plugin install yandex-metrika@claude-yandex-skills   # любые из списка
 ```
 
-### Первый запуск
-
-```bash
-bash ~/.claude/skills/yandex-auth/scripts/oauth-flow.sh
-```
-
-Откроется браузер с authorize-страницей Яндекса. После «Разрешить» —
-скрипт ловит токен из URL, валидирует через `login.yandex.ru/info`,
-кладёт в `~/.claude/secrets/yandex-app.json`. Один раз — и работает всё.
-
-Проверка:
-```bash
-bash ~/.claude/skills/yandex-auth/scripts/oauth-flow.sh --status
-```
+⚠️ Slash-команды Claude Code может выполнить только сам пользователь — AI через `Bash` tool их вызвать не может. Поэтому marketplace-путь подходит, только если ты ставишь руками сам.
 
 ## Список плагинов
 
