@@ -36,22 +36,54 @@ bash scripts/probe.sh
 
 ## Команды
 
-### Список кампаний
+### Структура кабинета
 ```bash
-bash scripts/campaigns.sh                     # все
-bash scripts/campaigns.sh --state ON          # только активные
-bash scripts/campaigns.sh --type TEXT_CAMPAIGN
+bash scripts/campaigns.sh                          # все кампании
+bash scripts/campaigns.sh --state ON               # только активные
+bash scripts/adgroups.sh --campaign <id>           # группы в кампании
+bash scripts/ads.sh --campaign <id>                # объявления (тексты + URL)
+bash scripts/keywords.sh --campaign <id>           # ключевые слова со ставками
 ```
 
-Вывод: `[<state>/<status>]  <id>  <name>  (<type>, start=YYYY-MM-DD)`
-
-### Отчёт по кампании
+### Ставки и корректировки
 ```bash
-bash scripts/report.sh <campaign_id>                       # за 30 дней
+bash scripts/bids.sh --campaign <id>               # текущие ставки, аукционные, конкурентов
+bash scripts/bid-modifiers.sh --campaign <id>      # корректировки по мобильным/демографии/регионам
+```
+
+### Аудитории и таргетинг
+```bash
+bash scripts/audience-targets.sh --adgroup <id>    # ретаргетинг и аудиторные цели
+bash scripts/feeds.sh --id <feed_id>               # товарные фиды (Smart Banners / Performance)
+```
+
+### Расширения объявлений
+```bash
+bash scripts/sitelinks.sh                          # быстрые ссылки (авто-собирает из объявлений)
+bash scripts/vcards.sh                             # виртуальные визитки (контакты)
+```
+
+### Минус-слова и история
+```bash
+bash scripts/negative-keywords.sh --id <set_id>    # наборы минус-фраз
+bash scripts/change-states.sh --since 2024-05-01T00:00:00Z  # что изменилось
+```
+
+### Прогноз и отчёты
+```bash
+bash scripts/forecast.sh "адвокат екатеринбург" "уголовный адвокат"  # есть ли спрос
+bash scripts/forecast.sh --region 213 "доставка"                     # регион Москва=213
+bash scripts/report.sh <campaign_id>                                  # отчёт за 30 дней
 bash scripts/report.sh <campaign_id> --from 2026-05-01 --to 2026-05-14
 ```
 
-Формат: TSV с колонками Date, Impressions, Clicks, Cost, Ctr, AvgCpc, Conversions. Async polling — Direct может отдать `201` пока отчёт готовится, скрипт сам ждёт `retryIn` секунд.
+Отчёт: TSV с Date, Impressions, Clicks, Cost, Ctr, AvgCpc, Conversions. Async polling — Direct может отдать `201` пока отчёт готовится.
+
+### ОРД РКН
+```bash
+bash scripts/ord-documents.sh                      # ОРД-настройки кампаний (counter_ids, SocialDemo)
+```
+*Примечание:* полная erid-маркировка проходит через сторонний ОРД-оператор, в Direct API только мета-настройки.
 
 ### Произвольный API-вызов
 ```bash

@@ -72,12 +72,39 @@ auth_header() {
     printf 'Authorization: Bearer %s' "$YANDEX_DIRECT_ACCESS_TOKEN"
 }
 
+# ── Helper: get all campaign IDs ───────────────────────────────
+# Returns comma-separated quoted IDs of ALL campaigns (any state).
+# Useful when an API endpoint requires at least one CampaignIds filter
+# but the user wants "everything".
+get_all_campaign_ids() {
+    direct_call campaigns '{"method":"get","params":{"SelectionCriteria":{},"FieldNames":["Id"]}}' \
+        | jq -r '.result.Campaigns[]? | "\"" + (.Id|tostring) + "\""' \
+        | paste -sd, -
+}
+
+# ── Helper: collect unique IDs from ads filtered by a jq selector ──
+# Used to discover VCardId / SitelinkSetId / etc. when API requires explicit Ids.
+get_referenced_ids() {
+    _jq_field="$1"
+    ALL_CMP=$(get_all_campaign_ids)
+    [ -z "$ALL_CMP" ] && return 0
+    direct_call ads "{\"method\":\"get\",\"params\":{\"SelectionCriteria\":{\"CampaignIds\":[$ALL_CMP]},\"FieldNames\":[\"Id\"],\"TextAdFieldNames\":[\"$_jq_field\"]}}" \
+        | jq -r ".result.Ads[]?.TextAd.$_jq_field // empty" \
+        | sort -u \
+        | awk 'NF' \
+        | sed 's/.*/"&"/' \
+        | paste -sd, -
+}
+
 # ── Direct API call wrapper ────────────────────────────────────
 # direct_call <resource> <json-body>
 # Direct API v5: POST to /json/v5/<resource> with JSON body.
 # Example: direct_call clients '{"method":"get","params":{"FieldNames":["ClientId","Login"]}}'
 direct_call() {
     _resource="$1"; _body="$2"
+    # Drop trailing commas before } / ] that can leak in when scripts concatenate
+    # optional filter fragments (e.g. "${CAMPAIGN_IDS}${STATES}"). Direct's parser is strict.
+    _body=$(printf '%s' "$_body" | sed -E 's/,([[:space:]]*[]}])/\1/g')
     curl -s --max-time 30 -X POST \
         -H "$(auth_header)" \
         -H "Accept-Language: ru" \
