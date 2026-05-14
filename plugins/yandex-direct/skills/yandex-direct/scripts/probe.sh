@@ -1,28 +1,41 @@
 #!/bin/sh
-# probe.sh — check API availability for yandex-direct under shared yandex-auth token.
-# Reports HTTP status and shows activation steps if access is denied.
+# probe.sh — check Yandex Direct API availability with dedicated Direct token.
+# Direct API v5: POST + Authorization: Bearer (not OAuth).
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$SCRIPT_DIR/common.sh"
 load_config
 
-URL="https://api.direct.yandex.com/json/v5/clients"
-echo "→ Probing Yandex Direct API v5"
-echo "  URL: $URL"
+echo "→ Probing Yandex Direct API v5 (/clients)"
+echo "  Token user: $YANDEX_DIRECT_LOGIN"
 echo ""
 
-HTTP=$(curl -s -o /tmp/yandex-direct-probe -w "%{http_code}" --max-time 10 \
-    -H "Authorization: OAuth $YANDEX_ACCESS_TOKEN" \
-    -H "Accept: application/json" \
-    "$URL")
+RESP=$(direct_call clients '{"method":"get","params":{"FieldNames":["ClientId","Login","Currency","Type"]}}')
 
-SAMPLE=$(head -c 200 /tmp/yandex-direct-probe | tr '\n' ' ')
+if echo "$RESP" | grep -q '"error"'; then
+    ERR_CODE=$(echo "$RESP" | sed -n 's/.*"error_code"[[:space:]]*:[[:space:]]*\([0-9]*\).*/\1/p' | head -1)
+    ERR_STR=$(echo "$RESP" | sed -n 's/.*"error_string"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+    ERR_DET=$(echo "$RESP" | sed -n 's/.*"error_detail"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' | head -1)
+    echo "❌ API error_code=$ERR_CODE — $ERR_STR"
+    echo "   $ERR_DET"
+    case "$ERR_CODE" in
+        58)
+            echo ""
+            echo "ℹ️  error_code 58 = заявка на доступ не одобрена для этого OAuth-app."
+            echo "   Проверь в кабинете Директа → Настройки API → 'Заявки на API'." ;;
+        53|54)
+            echo ""
+            echo "ℹ️  Токен невалиден или истёк. Перевыпусти:"
+            echo "   bash $SCRIPT_DIR/direct-oauth-flow.sh" ;;
+        8000)
+            echo ""
+            echo "ℹ️  OAuth token missing — токен не передаётся правильно. Проверь $DIRECT_TOKEN_FILE" ;;
+    esac
+    exit 1
+fi
 
-case "$HTTP" in
-    200|2*) echo "✅ HTTP $HTTP — endpoint доступен"; echo "   sample: $SAMPLE" ;;
-    401|403) echo "❌ HTTP $HTTP — access denied"; echo "   reply: $SAMPLE" ;;
-    *)      echo "⚠️  HTTP $HTTP — endpoint вернул нестандартный код"; echo "   reply: $SAMPLE" ;;
-esac
-
+echo "✅ Direct API доступен"
 echo ""
-echo "ℹ️  Активация: Yandex Direct требует ОТДЕЛЬНОЕ OAuth-приложение зарегистрированное в кабинете Директа: https://direct.yandex.ru/registered/main.pl?cmd=showApiSettings → 'Получить API'. Заявка рассматривается до 7 дней. После одобрения создать ещё одно OAuth-app именно с типом 'Direct', получить отдельный токен. ОБЩИЙ токен от Я-Клауд-Клиентс не подходит для Direct."
+echo "Список клиентов:"
+echo "$RESP" | jq -r '.result.Clients[] | "  - \(.Login)  (id=\(.ClientId), currency=\(.Currency), type=\(.Type))"' 2>/dev/null \
+    || echo "$RESP" | head -c 500

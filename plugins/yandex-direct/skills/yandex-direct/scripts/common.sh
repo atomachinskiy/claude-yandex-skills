@@ -13,24 +13,30 @@ API_BASE="https://api.direct.yandex.com/json/v5"
 # Tools
 JQ="$(command -v jq || echo /usr/local/bin/jq)"
 
-# ── Bridge to yandex-auth (shared OAuth token) ──────────────────
-# Resolve yandex-auth/common.sh by climbing 3 levels up from scripts/ dir,
-# then descending into plugins/yandex-auth/skills/yandex-auth/scripts/common.sh.
-_AUTH_COMMON="$SCRIPT_DIR/../../../../yandex-auth/skills/yandex-auth/scripts/common.sh"
-if [ ! -f "$_AUTH_COMMON" ]; then
-    # Fallback when installed as plugins under ~/.claude/skills/
-    _AUTH_COMMON="$HOME/.claude/skills/yandex-auth/scripts/common.sh"
-fi
-# shellcheck disable=SC1090
-. "$_AUTH_COMMON"
+# ── Direct uses its own OAuth-app (separate token) ──────────────
+# Yandex Direct API requires a dedicated OAuth-app registered in Direct cabinet,
+# not the shared "Я-Клауд-Клиентс" app. Token is stored separately.
+DIRECT_TOKEN_FILE="${YANDEX_DIRECT_TOKEN_FILE:-$HOME/.claude/secrets/yandex-direct-app.json}"
 
-# load_config — reads optional .env (skill-specific params), then ensures token.
+# load_config — reads optional .env, then loads Direct-specific OAuth token.
 load_config() {
     if [ -f "$CONFIG_FILE" ]; then
         # shellcheck disable=SC1090
         . "$CONFIG_FILE"
     fi
-    yandex_load_token   # sets YANDEX_ACCESS_TOKEN, YANDEX_LOGIN, YANDEX_USER_ID
+    if [ ! -f "$DIRECT_TOKEN_FILE" ]; then
+        echo "ERROR: Direct OAuth token not found: $DIRECT_TOKEN_FILE" >&2
+        echo "Run: bash $SCRIPT_DIR/direct-oauth-flow.sh" >&2
+        exit 1
+    fi
+    YANDEX_DIRECT_ACCESS_TOKEN=$(sed -n 's/.*"access_token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$DIRECT_TOKEN_FILE")
+    YANDEX_DIRECT_LOGIN=$(sed -n 's/.*"yandex_login"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$DIRECT_TOKEN_FILE")
+    if [ -z "$YANDEX_DIRECT_ACCESS_TOKEN" ] || [ "${#YANDEX_DIRECT_ACCESS_TOKEN}" -lt 30 ]; then
+        echo "ERROR: Direct access_token in $DIRECT_TOKEN_FILE looks invalid." >&2
+        echo "Re-run: bash $SCRIPT_DIR/direct-oauth-flow.sh" >&2
+        exit 1
+    fi
+    export YANDEX_DIRECT_ACCESS_TOKEN YANDEX_DIRECT_LOGIN
 }
 
 # ── Cache helpers ──────────────────────────────────────────────
@@ -61,19 +67,21 @@ limit_output() {
     awk 'NR<=30; END { if (NR>30) printf "# ... truncated (%d more lines). Use --full to show all.\n", NR-30 }'
 }
 
-# ── Auth header helper ─────────────────────────────────────────
+# ── Auth header helper (Direct uses Bearer, NOT OAuth) ─────────
 auth_header() {
-    printf 'Authorization: OAuth %s' "$YANDEX_ACCESS_TOKEN"
+    printf 'Authorization: Bearer %s' "$YANDEX_DIRECT_ACCESS_TOKEN"
 }
 
-# ── Generic call wrapper ───────────────────────────────────────
-# call <method> <path> [extra curl args...]
-# Echoes raw response body. Method examples: GET, POST.
-call() {
-    _method="$1"; _path="$2"; shift 2
-    curl -s --max-time 30 -X "$_method" \
+# ── Direct API call wrapper ────────────────────────────────────
+# direct_call <resource> <json-body>
+# Direct API v5: POST to /json/v5/<resource> with JSON body.
+# Example: direct_call clients '{"method":"get","params":{"FieldNames":["ClientId","Login"]}}'
+direct_call() {
+    _resource="$1"; _body="$2"
+    curl -s --max-time 30 -X POST \
         -H "$(auth_header)" \
-        -H "Content-Type: application/json" \
-        "$@" \
-        "$API_BASE$_path"
+        -H "Accept-Language: ru" \
+        -H "Content-Type: application/json; charset=utf-8" \
+        -d "$_body" \
+        "$API_BASE/$_resource"
 }
