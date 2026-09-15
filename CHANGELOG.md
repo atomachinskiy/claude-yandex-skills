@@ -6,6 +6,11 @@
 
 ## [Unreleased]
 
+### Added
+- `yandex-direct`: `references/ОСНОВЫ.md` — доступ и приложения, `Bearer` вместо `OAuth`,
+  обычный кабинет против агентского и заголовок `Client-Login`, коды ошибок 53/58/8000/8800,
+  цена запросов в баллах с замерами, расхождение `TEXT_CAMPAIGN` и ЕПК в интерфейсе.
+
 ### Fixed
 - `yandex-wordstat`: рабочий бэкенд Yandex Cloud Search API v2. Поддержан статический
   Cloud API-ключ (`Authorization: Api-Key`) наряду с JSON-ключом сервисного аккаунта,
