@@ -72,6 +72,16 @@ auth_header() {
     printf 'Authorization: Bearer %s' "$YANDEX_DIRECT_ACCESS_TOKEN"
 }
 
+# ── Agency accounts: act on behalf of a client ─────────────────
+# Under an agency account the token belongs to the agency, and every request
+# must name the client it is about. Set YANDEX_DIRECT_CLIENT_LOGIN (env or
+# config/.env) to that client's Direct login; leave empty for a direct
+# advertiser account.
+client_login_header() {
+    [ -n "${YANDEX_DIRECT_CLIENT_LOGIN:-}" ] || return 0
+    printf 'Client-Login: %s' "$YANDEX_DIRECT_CLIENT_LOGIN"
+}
+
 # ── Helper: get all campaign IDs ───────────────────────────────
 # Returns comma-separated quoted IDs of ALL campaigns (any state).
 # Useful when an API endpoint requires at least one CampaignIds filter
@@ -105,10 +115,20 @@ direct_call() {
     # Drop trailing commas before } / ] that can leak in when scripts concatenate
     # optional filter fragments (e.g. "${CAMPAIGN_IDS}${STATES}"). Direct's parser is strict.
     _body=$(printf '%s' "$_body" | sed -E 's/,([[:space:]]*[]}])/\1/g')
-    curl -s --max-time 30 -X POST \
-        -H "$(auth_header)" \
-        -H "Accept-Language: ru" \
-        -H "Content-Type: application/json; charset=utf-8" \
-        -d "$_body" \
-        "$API_BASE/$_resource"
+    if [ -n "${YANDEX_DIRECT_CLIENT_LOGIN:-}" ]; then
+        curl -s --max-time 30 -X POST \
+            -H "$(auth_header)" \
+            -H "$(client_login_header)" \
+            -H "Accept-Language: ru" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d "$_body" \
+            "$API_BASE/$_resource"
+    else
+        curl -s --max-time 30 -X POST \
+            -H "$(auth_header)" \
+            -H "Accept-Language: ru" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            -d "$_body" \
+            "$API_BASE/$_resource"
+    fi
 }

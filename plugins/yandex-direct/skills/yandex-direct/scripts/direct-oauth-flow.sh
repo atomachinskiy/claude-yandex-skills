@@ -13,9 +13,11 @@
 
 set -e
 
-# Dedicated Direct OAuth-app: "Claud direct"
-CLIENT_ID="040b84bb83e74fa6abe6619c7ea0f688"
-APP_NAME="Claud direct"
+# Dedicated Direct OAuth-app. Defaults to "Claud direct"; override with
+# YANDEX_DIRECT_CLIENT_ID (and YANDEX_DIRECT_APP_NAME) to use a corporate app
+# whose API access request is already approved in the Direct cabinet.
+CLIENT_ID="${YANDEX_DIRECT_CLIENT_ID:-040b84bb83e74fa6abe6619c7ea0f688}"
+APP_NAME="${YANDEX_DIRECT_APP_NAME:-Claud direct}"
 
 SECRETS_DIR="$HOME/.claude/secrets"
 TOKEN_FILE="$SECRETS_DIR/yandex-direct-app.json"
