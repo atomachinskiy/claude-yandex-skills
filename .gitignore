@@ -2,3 +2,9 @@
 !**/cache/.gitkeep
 **/config/.env
 .DS_Store
+**/logs/*
+**/journal/*
+**/settings/*
+!**/logs/.gitkeep
+__pycache__/
+*.pyc

@@ -1,9 +1,12 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "claude-yandex-skills",
-  "version": "0.0.1",
+  "version": "2.0.0",
   "description": "Скиллы для работы с экосистемой Яндекса через единый OAuth (приложение Я-Клауд-Клиентс): Метрика, Вебмастер, Wordstat, Директ, Аудитории, Формы, Календарь, Почта, Диск, Телемост, Трекер, Боты, 360 Admin, Мессенджер.",
-  "owner": { "name": "Andrey Tomachinskiy", "url": "https://github.com/atomachinskiy" },
+  "owner": {
+    "name": "Andrey Tomachinskiy",
+    "url": "https://github.com/atomachinskiy"
+  },
   "plugins": [
     {
       "name": "yandex-auth",
@@ -31,7 +34,7 @@
     },
     {
       "name": "yandex-direct",
-      "description": "Ads: campaigns, groups, keywords, reports, ORD documents.",
+      "description": "Яндекс Директ через API v5: статистика и аудит, кампании, группы, объявления и комплекты, фразы и минус-фразы, ставки и корректировки, цели, ретаргетинг по сегментам Метрики, фиды и товарные кампании, превью для согласования, ОРД и erid.",
       "source": "./plugins/yandex-direct",
       "category": "productivity"
     },
