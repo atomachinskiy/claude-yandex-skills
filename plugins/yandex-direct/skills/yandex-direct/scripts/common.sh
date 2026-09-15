@@ -20,10 +20,21 @@ DIRECT_TOKEN_FILE="${YANDEX_DIRECT_TOKEN_FILE:-$HOME/.claude/secrets/yandex-dire
 
 # load_config — reads optional .env, then loads Direct-specific OAuth token.
 load_config() {
+    # Remember what the caller passed in the environment: sourcing config/.env
+    # would otherwise silently overwrite a one-off override.
+    _env_token_file="${YANDEX_DIRECT_TOKEN_FILE:-}"
+    _env_client_login="${YANDEX_DIRECT_CLIENT_LOGIN:-}"
     if [ -f "$CONFIG_FILE" ]; then
         # shellcheck disable=SC1090
         . "$CONFIG_FILE"
     fi
+    [ -n "$_env_token_file" ] && YANDEX_DIRECT_TOKEN_FILE="$_env_token_file"
+    [ -n "$_env_client_login" ] && YANDEX_DIRECT_CLIENT_LOGIN="$_env_client_login"
+    # config/.env may point at a different token file; the environment wins.
+    if [ -n "${YANDEX_DIRECT_TOKEN_FILE:-}" ]; then
+        DIRECT_TOKEN_FILE="$YANDEX_DIRECT_TOKEN_FILE"
+    fi
+    export YANDEX_DIRECT_CLIENT_LOGIN
     if [ ! -f "$DIRECT_TOKEN_FILE" ]; then
         echo "ERROR: Direct OAuth token not found: $DIRECT_TOKEN_FILE" >&2
         echo "Run: bash $SCRIPT_DIR/direct-oauth-flow.sh" >&2
