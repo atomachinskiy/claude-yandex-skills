@@ -42,10 +42,11 @@ if [ "$BACKEND" = "legacy" ]; then
         "$REGIONS_JSON")
     DATA=$(call_legacy "/topRequests" "$BODY")
 else
-    # Cloud schema (preview, may change)
-    BODY=$(printf '{"phrase":%s,"regions":%s,"limit":%d}' \
+    # Cloud Search API v2 wordstat: regions must be STRINGS, numPhrases required (1..2000).
+    RJSON=$(echo "$REGIONS" | tr -d '[:space:]' | tr ',' '\n' | $JQ -R . | $JQ -sc .)
+    BODY=$(printf '{"phrase":%s,"regions":%s,"numPhrases":%d}' \
         "$($JQ -n --arg p "$PHRASE" '$p')" \
-        "$REGIONS_JSON" "$LIMIT")
+        "$RJSON" "$LIMIT")
     DATA=$(call_cloud "/wordstat/topRequests" "$BODY")
 fi
 
@@ -67,14 +68,14 @@ if [ "$OUTPUT_JSON" -eq 1 ]; then
     exit 0
 fi
 
-TOTAL=$(echo "$DATA" | $JQ -r '.totalCount // 0')
+TOTAL=$(echo "$DATA" | $JQ -r '.totalCount // (.results[0].count) // 0')
 {
     echo "# Wordstat top requests — phrase: \"$PHRASE\"  region: $REGIONS  backend: $BACKEND"
-    echo "Total monthly volume: $TOTAL"
+    echo "Base phrase monthly volume: $TOTAL"
     echo ""
     echo "$DATA" | $JQ -r --argjson lim "$LIMIT" '
-        .topRequests // .items // [] |
+        (.results // .topRequests // .items // []) |
         .[0:$lim] | to_entries[] |
         "\(.key + 1)|\(.value.phrase // .value.query)|\(.value.count // .value.shows // 0)"
-    ' | awk -F'|' '{ printf "%3s. %-50s %10s\n", $1, $2, $3 }'
+    ' | awk -F'|' '{ printf "%3s. %-50s %12s\n", $1, $2, $3 }'
 } | limit_output

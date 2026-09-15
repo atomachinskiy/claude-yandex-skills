@@ -6,6 +6,16 @@
 
 ## [Unreleased]
 
+### Fixed
+- `yandex-wordstat`: рабочий бэкенд Yandex Cloud Search API v2. Поддержан статический
+  Cloud API-ключ (`Authorization: Api-Key`) наряду с JSON-ключом сервисного аккаунта,
+  `folderId` стал необязательным, `regions` уходят строками, добавлен обязательный
+  `numPhrases`. До этого облачный бэкенд не работал вовсе: ждал только JSON-ключ и
+  посылал регионы числами без `numPhrases`.
+- `yandex-wordstat`: в `config/.env.example` исправлена роль сервисного аккаунта на
+  `search-api.webSearch.user` (прежние `search-api.*` объявлены устаревшими и отвечают
+  `code 7 denied`) и описана область действия ключа `yc.search-api.execute`.
+
 ## [0.2.0] — 2026-05-05
 
 ### Added — все 15 плагинов закрыты

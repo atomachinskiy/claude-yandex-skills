@@ -30,7 +30,7 @@ load_config() {
     # Backend resolution
     if [ -n "$YANDEX_WORDSTAT_BACKEND" ]; then
         BACKEND="$YANDEX_WORDSTAT_BACKEND"
-    elif [ -n "$YANDEX_CLOUD_SA_KEY_FILE" ] && [ -f "$YANDEX_CLOUD_SA_KEY_FILE" ]; then
+    elif [ -n "$YANDEX_CLOUD_API_KEY" ] || { [ -n "$YANDEX_CLOUD_SA_KEY_FILE" ] && [ -f "$YANDEX_CLOUD_SA_KEY_FILE" ]; }; then
         BACKEND="cloud"
     elif [ -n "$YANDEX_WORDSTAT_TOKEN" ]; then
         BACKEND="legacy"
@@ -49,17 +49,21 @@ load_config() {
             fi
             ;;
         cloud)
-            [ -z "$YANDEX_CLOUD_FOLDER_ID" ] && { echo "ERROR: YANDEX_CLOUD_FOLDER_ID not set in config/.env" >&2; exit 1; }
-            [ -z "$YANDEX_CLOUD_SA_KEY_FILE" ] && { echo "ERROR: YANDEX_CLOUD_SA_KEY_FILE not set" >&2; exit 1; }
-            [ ! -f "$YANDEX_CLOUD_SA_KEY_FILE" ] && { echo "ERROR: SA key file missing: $YANDEX_CLOUD_SA_KEY_FILE" >&2; exit 1; }
-            WS_TOKEN=$(get_iam_token)
+            # Auth: prefer a static Cloud API key (Api-Key), else a SA JSON key (IAM/JWT).
+            if [ -n "$YANDEX_CLOUD_API_KEY" ]; then
+                CLOUD_AUTH="Api-Key $YANDEX_CLOUD_API_KEY"
+            elif [ -n "$YANDEX_CLOUD_SA_KEY_FILE" ] && [ -f "$YANDEX_CLOUD_SA_KEY_FILE" ]; then
+                CLOUD_AUTH="Bearer $(get_iam_token)"
+            else
+                echo "ERROR: set YANDEX_CLOUD_API_KEY or YANDEX_CLOUD_SA_KEY_FILE in config/.env" >&2; exit 1
+            fi
             ;;
         *)
             echo "ERROR: unknown backend '$BACKEND' (use legacy|cloud|auto)" >&2
             exit 1
             ;;
     esac
-    export BACKEND WS_TOKEN
+    export BACKEND WS_TOKEN CLOUD_AUTH
 }
 
 # get_iam_token — generates JWT, exchanges for IAM token, caches for 1h.
@@ -129,17 +133,17 @@ call_legacy() {
 # Cloud Wordstat (preview): /v2/wordstat/{topRequests|dynamics|regionsStats}
 call_cloud() {
     _path="$1"; _body="${2:-}"
-    # Inject folderId to body (cloud requirement)
+    # Auth via $CLOUD_AUTH (Api-Key ... or Bearer <IAM>). folderId optional with Api-Key.
     if [ -n "$_body" ]; then
-        _body=$(echo "$_body" | $JQ --arg f "$YANDEX_CLOUD_FOLDER_ID" '. + {folderId: $f}')
+        [ -n "$YANDEX_CLOUD_FOLDER_ID" ] && _body=$(echo "$_body" | $JQ --arg f "$YANDEX_CLOUD_FOLDER_ID" '. + {folderId: $f}')
         curl -s --max-time 30 -X POST \
-            -H "Authorization: Bearer $WS_TOKEN" \
+            -H "Authorization: $CLOUD_AUTH" \
             -H "Content-Type: application/json" \
             -d "$_body" \
             "$CLOUD_API$_path"
     else
         curl -s --max-time 30 -X GET \
-            -H "Authorization: Bearer $WS_TOKEN" \
+            -H "Authorization: $CLOUD_AUTH" \
             "$CLOUD_API$_path"
     fi
 }
